@@ -59,6 +59,9 @@ location of the reference star in pixels.
 Documentation for all of our functions is listed in the html file under
 docs2/_build/html/index.html (double click to open in web browser).
 
+In an ideal world, the documentation would also be available here: 
+https://codeastro-project.readthedocs.io/en/latest/ 
+
 # Contacts:
 If you have any questions about the package, contact us at:
 emilywhittaker at g.ucla.edu
