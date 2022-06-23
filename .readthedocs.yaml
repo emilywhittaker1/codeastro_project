@@ -12,7 +12,7 @@ build:
     python: "3.9"
     install:
       - method: setuptools
-      path: codeastro_project
+        path: codeastro_project
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
