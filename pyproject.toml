@@ -1,6 +1,6 @@
 [differential_photometry]
 name = "differential_photometry"
-version = "0.1.0"
+version = "2"
 description = "Create a pyproject.toml file for an existing project."
 authors = [
     "Emily Whittaker <emilywhittaker@g.ucla.edu>"
