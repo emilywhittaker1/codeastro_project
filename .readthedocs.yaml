@@ -10,9 +10,6 @@ build:
   os: ubuntu-20.04
   tools:
     python: "3.9"
-    install:
-      - method: setuptools
-        path: codeastro_project
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
