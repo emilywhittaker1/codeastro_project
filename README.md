@@ -49,10 +49,11 @@ time listed in minutes since the first observation, and relative flux
 of the variable star measured in instrument counts.  This will be a 
 .png file.
 
-It will also output a .csv file containing the name of the fits file, the relative 
-flux of the variable star (counts), the measured flux of the vairable star (counts),
-the measured flux of the reference star (counts), the time of observations (MJD),
-and the relative time (minutes).
+It will also output a .csv file containing the name of the fits file, the 
+time of observations (MJD), the relative flux of the variable star (counts), 
+the measured flux of the variable star (counts), the measured flux of the 
+reference star (counts), the location of the target star in pixels, and the 
+location of the reference star in pixels.
 
 
 # Contacts:
