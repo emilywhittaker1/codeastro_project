@@ -59,4 +59,4 @@ and the relative time (minutes).
 If you have any questions about the package, contact us at:
 emilywhittaker at g.ucla.edu
 
-![alt text](https://github.com/emilywhittaker1/codeastro_project/blob/differential_photometry_logo.png?raw=true)
+![logo](https://github.com/emilywhittaker1/codeastro_project/differential_photometry_logo.png?raw=true)
