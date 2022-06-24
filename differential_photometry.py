@@ -151,29 +151,15 @@ def star_counts(pixels, data):
 
 #files = sorted(glob.glob(fitpath+'/*.fit'))
 
-# Store the names of all of the FIT files in the same folder
-files = sorted(glob.glob('*.fit'))
+def do_dif_photometry(AstrometryNet_key, Target_RA, Target_Dec, Ref_RA, Ref_Dec, ap_size, an_small, an_large, imsz, fitpath, plotpath, plotting = True, output_file = "Differential_Photometry.txt"):
+    # Store the names of all of the FIT files in the same folder
+    files = sorted(glob.glob('*.fit'))
 
-#print(len(files))
+    #print(len(files))
 
-# Create two empty arrays for later use
-relstars_lst = []
-mjds_lst = []
-
-# If Differential_Photometry.txt exists
-if path.isfile('Differential_Photometry.txt') == True:
-
-    # Load in Differential_Photometry.txt
-    info = np.loadtxt('Differential_Photometry.txt', skiprows = 1, dtype = str)
-
-# Loop through all FIT files in the same folder
-for i in range(len(files)):
-
-    # Print the FIT file that is being analyzed
-    print(files[i])
-            
-    # Print a new line 
-    print("\n")
+    # Create two empty arrays for later use
+    relstars_lst = []
+    mjds_lst = []
 
     # If Differential_Photometry.txt exists
     if path.isfile('Differential_Photometry.txt') == True:
@@ -181,46 +167,157 @@ for i in range(len(files)):
         # Load in Differential_Photometry.txt
         info = np.loadtxt('Differential_Photometry.txt', skiprows = 1, dtype = str)
 
-        # If info is a 1D array
-        if len(info.shape) == 1:
+    # Loop through all FIT files in the same folder
+    for i in range(len(files)):
 
-            # Store the names of the recorded light curves in Output.txt
-            name = info[0]
+        # Print the FIT file that is being analyzed
+        print(files[i])
+                
+        # Print a new line 
+        print("\n")
 
-        # If info is a 2D array
-        if len(info.shape) == 2:
+        # If Differential_Photometry.txt exists
+        if path.isfile('Differential_Photometry.txt') == True:
 
-            # Store the names of the recorded light curves in Output.txt
-            name = info[:,0]
+            # Load in Differential_Photometry.txt
+            info = np.loadtxt('Differential_Photometry.txt', skiprows = 1, dtype = str)
 
-        # If the name of the FIT file is not recorded in Differential_Photometry.txt, run the function
-        if str(files[i]) not in name:
+            # If info is a 1D array
+            if len(info.shape) == 1:
 
-            # Import the FIT file and extract data from it
-            FIT_File = get_pkg_data_filename(files[i])
+                # Store the names of the recorded light curves in Output.txt
+                name = info[0]
+
+            # If info is a 2D array
+            if len(info.shape) == 2:
+
+                # Store the names of the recorded light curves in Output.txt
+                name = info[:,0]
+
+            # If the name of the FIT file is not recorded in Differential_Photometry.txt, run the function
+            if str(files[i]) not in name:
+
+                # Import the FIT file and extract data from it
+                FIT_File = get_pkg_data_filename(files[i])
+                
+                # Run the function AstrometryNet_Plate_Solve to find the pixel numbers of the 
+                # target star and the reference star in the x and y axes
+                (Target_Pix, Ref_Pix) = AstrometryNet_Plate_Solve(AstrometryNet_key, FIT_File, Target_RA, Target_DEC, Ref_RA, Ref_DEC)
+
+                # Read in the pixel counts of the FIT file
+                image_data = fits.getdata(FIT_File, header=True)
+                data = image_data[0]
+
+                # Read in the header of the FIT file
+                hdr = image_data[1]
+
+                #Extract the time from the image header
+                time = hdr['DATE-OBS']
+                t = Time(time, format='isot', scale='utc')
+
+                # Store the time [MJD] of each FIT file in an array
+                mjds_lst.append(t.mjd)
+
+                # If the FIT file can NOT be plate solved
+                if (Target_Pix, Ref_Pix) == (999,999):
+                    
+                    # Store some 999 values
+                    output = (files[i], t.mjd, "999", "999", "999")
+
+                else: 
+
+                    #Getting more precise pixel location by measuring brightness
+                    """
+                    #boxsz = 20 #size of the test box, in pixels
+                    #small_data = data[limx-boxsz:limx+boxsz, limy-imsz:limy+boxsz]
+                    """
+                    #Shrinking the data to a reasonable size
+                    limx = data.shape[0]//2
+                    limy = data.shape[1]//2
+                    small_data = data[limx-imsz:limx+imsz, limy-imsz:limy+imsz]
+                    small_pixels = [Target_Pix[0]-limy+imsz, Target_Pix[1]-limx+imsz]
+                    small_refpixels = [Ref_Pix[0]-limy+imsz, Ref_Pix[1]-limx+imsz]
+                    
+                    #Checking that the location in pixels is correct by plotting
+                    norm = simple_norm(small_data, 'sqrt', percent=99)
             
-            # Run the function AstrometryNet_Plate_Solve to find the pixel numbers of the 
-            # target star and the reference star in the x and y axes
+                    #Getting the instrument counts for the star and the reference star
+                    star_cts, star_aperture, star_annulus = star_counts(small_pixels, small_data)
+                    refstar_cts, refstar_aperture, refstar_annulus = star_counts(small_refpixels, small_data)
+
+                    #Relative counts (star - reference star)
+                    rel_star_cts = star_cts - refstar_cts
+                    relstars_lst.append(rel_star_cts[0])
+
+                    # Store the output values 
+                    output = (files[i], t.mjd, rel_star_cts[0], star_cts[0], refstar_cts[0])         
+
+                    # If the user want to plot the graphs
+                    if plotting == True:
+
+                        # Plot the cropped image 
+                        plt.figure()
+                        plt.imshow(small_data, norm=norm)
+
+                        # Invert the y axis
+                        plt.gca().invert_yaxis()
+
+
+                        #Plotting the annulus and aperture as a check
+                        ap_patches = star_aperture.plot(color='white', lw=2,
+                                                label='Star Annulus')
+                        ann_patches = star_annulus.plot(color='red', lw=2,
+                                                            label='Background Annulus')
+                        handles = (ap_patches[0], ann_patches[0])
+                        plt.legend(loc=(0.17, 0.05), facecolor='#458989', labelcolor='white',
+                                handles=handles, prop={'weight': 'bold', 'size': 11})
+
+                        ref_ap_patches = refstar_aperture.plot(color='white', lw=2,
+                                                label='Star Annulus')
+                        ref_ann_patches = refstar_annulus.plot(color='red', lw=2,
+                                                            label='Background Annulus')
+
+                        plt.title(files[i])
+
+                        plt.xlabel("x [pixels]")
+                        plt.ylabel("y [pixels]")
+
+                        plt.savefig(fname = plotpath + files[i] + ".png", dpi = 200)
+
+                        # Close the plot to avoid memory overflow
+                        plt.close()
+
+                # If the txt file doesn't exist (running the code for the first time)
+                if not path.exists(output_file):
+                    with open(output_file,'a+') as myfile:
+                        # Write the header for the txt file
+                        myfile.write("File_Name, Observation_Time_MJD, Relative_Star_Counts, Target_Star_Counts, Reference_Star_Counts" + "\n")
+
+                # Write the output values into the text file
+                with open(output_file, "a+") as myfile: 
+                    myfile.write(' '.join(str(e) for e in output) + "\n")
+
+        # If Differential_Photometry.txt does NOT exist, run basically the same code as above 
+        else: 
+
+            FIT_File = get_pkg_data_filename(files[i])
+                
             (Target_Pix, Ref_Pix) = AstrometryNet_Plate_Solve(AstrometryNet_key, FIT_File, Target_RA, Target_DEC, Ref_RA, Ref_DEC)
 
-            # Read in the pixel counts of the FIT file
             image_data = fits.getdata(FIT_File, header=True)
             data = image_data[0]
-
-            # Read in the header of the FIT file
             hdr = image_data[1]
 
-            #Extract the time from the image header
+            #Extracting the time from the image header and converting to MJD
             time = hdr['DATE-OBS']
+            #print(time)
             t = Time(time, format='isot', scale='utc')
 
             # Store the time [MJD] of each FIT file in an array
             mjds_lst.append(t.mjd)
 
-            # If the FIT file can NOT be plate solved
             if (Target_Pix, Ref_Pix) == (999,999):
-                
-                # Store some 999 values
+                    
                 output = (files[i], t.mjd, "999", "999", "999")
 
             else: 
@@ -239,7 +336,7 @@ for i in range(len(files)):
                 
                 #Checking that the location in pixels is correct by plotting
                 norm = simple_norm(small_data, 'sqrt', percent=99)
-        
+            
                 #Getting the instrument counts for the star and the reference star
                 star_cts, star_aperture, star_annulus = star_counts(small_pixels, small_data)
                 refstar_cts, refstar_aperture, refstar_annulus = star_counts(small_refpixels, small_data)
@@ -248,17 +345,13 @@ for i in range(len(files)):
                 rel_star_cts = star_cts - refstar_cts
                 relstars_lst.append(rel_star_cts[0])
 
-                # Store the output values 
-                output = (files[i], t.mjd, rel_star_cts[0], star_cts[0], refstar_cts[0])         
+                output = (files[i], t.mjd, rel_star_cts[0], star_cts[0], refstar_cts[0])  
 
-                # If the user want to plot the graphs
                 if plotting == True:
 
-                    # Plot the cropped image 
                     plt.figure()
                     plt.imshow(small_data, norm=norm)
-
-                    # Invert the y axis
+                    #plt.scatter(small_pixels[0], small_pixels[1], color='w', marker='*', s=2)
                     plt.gca().invert_yaxis()
 
 
@@ -283,117 +376,25 @@ for i in range(len(files)):
 
                     plt.savefig(fname = plotpath + files[i] + ".png", dpi = 200)
 
-                    # Close the plot to avoid memory overflow
                     plt.close()
 
-            # If the txt file doesn't exist (running the code for the first time)
             if not path.exists(output_file):
-               with open(output_file,'a+') as myfile:
+                with open(output_file,'a+') as myfile:
+                        myfile.write("File_Name, Observation_Time_MJD, Relative_Star_Counts, Target_Star_Counts, Reference_Star_Counts" + "\n")
 
-                    # Write the header for the txt file
-                    myfile.write("File_Name, Observation_Time_MJD, Relative_Star_Counts, Target_Star_Counts, Reference_Star_Counts" + "\n")
-
-            # Write the output values into the text file
             with open(output_file, "a+") as myfile: 
                 myfile.write(' '.join(str(e) for e in output) + "\n")
 
-    # If Differential_Photometry.txt does NOT exist, run basically the same code as above 
-    else: 
+        # Print a new line
+        print("\n")
 
-        FIT_File = get_pkg_data_filename(files[i])
-            
-        (Target_Pix, Ref_Pix) = AstrometryNet_Plate_Solve(AstrometryNet_key, FIT_File, Target_RA, Target_DEC, Ref_RA, Ref_DEC)
+    data = np.genfromtxt('Differential_Photometry.txt', skip_header = 1, usecols = (1,2))
 
-        image_data = fits.getdata(FIT_File, header=True)
-        data = image_data[0]
-        hdr = image_data[1]
+def plot_lightcurve(data):
+    plt.figure()
+    plt.plot(data[:,0], data[:,1])
+    plt.xlabel("MJD")
+    plt.ylabel("Target Star Counts - Reference Star Counts")
+    plt.title("Lightcurve for Eclipsing CV")
 
-        #Extracting the time from the image header and converting to MJD
-        time = hdr['DATE-OBS']
-        #print(time)
-        t = Time(time, format='isot', scale='utc')
-
-        # Store the time [MJD] of each FIT file in an array
-        mjds_lst.append(t.mjd)
-
-        if (Target_Pix, Ref_Pix) == (999,999):
-                
-            output = (files[i], t.mjd, "999", "999", "999")
-
-        else: 
-
-            #Getting more precise pixel location by measuring brightness
-            """
-            #boxsz = 20 #size of the test box, in pixels
-            #small_data = data[limx-boxsz:limx+boxsz, limy-imsz:limy+boxsz]
-            """
-            #Shrinking the data to a reasonable size
-            limx = data.shape[0]//2
-            limy = data.shape[1]//2
-            small_data = data[limx-imsz:limx+imsz, limy-imsz:limy+imsz]
-            small_pixels = [Target_Pix[0]-limy+imsz, Target_Pix[1]-limx+imsz]
-            small_refpixels = [Ref_Pix[0]-limy+imsz, Ref_Pix[1]-limx+imsz]
-            
-            #Checking that the location in pixels is correct by plotting
-            norm = simple_norm(small_data, 'sqrt', percent=99)
-        
-            #Getting the instrument counts for the star and the reference star
-            star_cts, star_aperture, star_annulus = star_counts(small_pixels, small_data)
-            refstar_cts, refstar_aperture, refstar_annulus = star_counts(small_refpixels, small_data)
-
-            #Relative counts (star - reference star)
-            rel_star_cts = star_cts - refstar_cts
-            relstars_lst.append(rel_star_cts[0])
-
-            output = (files[i], t.mjd, rel_star_cts[0], star_cts[0], refstar_cts[0])  
-
-            if plotting == True:
-
-                plt.figure()
-                plt.imshow(small_data, norm=norm)
-                #plt.scatter(small_pixels[0], small_pixels[1], color='w', marker='*', s=2)
-                plt.gca().invert_yaxis()
-
-
-                #Plotting the annulus and aperture as a check
-                ap_patches = star_aperture.plot(color='white', lw=2,
-                                        label='Star Annulus')
-                ann_patches = star_annulus.plot(color='red', lw=2,
-                                                    label='Background Annulus')
-                handles = (ap_patches[0], ann_patches[0])
-                plt.legend(loc=(0.17, 0.05), facecolor='#458989', labelcolor='white',
-                        handles=handles, prop={'weight': 'bold', 'size': 11})
-
-                ref_ap_patches = refstar_aperture.plot(color='white', lw=2,
-                                        label='Star Annulus')
-                ref_ann_patches = refstar_annulus.plot(color='red', lw=2,
-                                                    label='Background Annulus')
-
-                plt.title(files[i])
-
-                plt.xlabel("x [pixels]")
-                plt.ylabel("y [pixels]")
-
-                plt.savefig(fname = plotpath + files[i] + ".png", dpi = 200)
-
-                plt.close()
-
-        if not path.exists(output_file):
-           with open(output_file,'a+') as myfile:
-                    myfile.write("File_Name, Observation_Time_MJD, Relative_Star_Counts, Target_Star_Counts, Reference_Star_Counts" + "\n")
-
-        with open(output_file, "a+") as myfile: 
-            myfile.write(' '.join(str(e) for e in output) + "\n")
-
-    # Print a new line
-    print("\n")
-
-data = np.genfromtxt('Differential_Photometry.txt', skip_header = 1, usecols = (1,2))
-
-plt.figure()
-plt.plot(data[:,0], data[:,1])
-plt.xlabel("MJD")
-plt.ylabel("Target Star Counts - Reference Star Counts")
-plt.title("Lightcurve for Eclipsing CV")
-
-plt.savefig(fname = "Lightcurve", dpi = 200)
+    plt.savefig(fname = "Lightcurve", dpi = 200)
