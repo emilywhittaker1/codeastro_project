@@ -1,0 +1,7 @@
+os
+glob
+numpy
+matplotlib.pyplot
+astropy
+photutils
+astroquery
