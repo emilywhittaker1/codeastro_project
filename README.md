@@ -37,12 +37,15 @@ an_large = 30
 number of pixels from the middle to the edge of the image, in x and y
 imsz = 150 
 
+Wheather or not to plot the images with their apertures.
+plotting = True
+
 path where you want to save the lightcurve and csv
 plotpath = "Plot/" 
 path where the fits files are
 fitpath = "Small/" 
 
-Names of the output files
+Name of the output file
 output_file = "Differential_Photometry.txt"
 
 # Outputs:

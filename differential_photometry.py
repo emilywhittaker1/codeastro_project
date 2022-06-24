@@ -99,7 +99,10 @@ def star_counts(pixels, data, ap_size, an_small, an_large):
     Args:
             pixels (array): numpy vector. Location of the target star in pixels.
             data (array): numpy 2D array. Image data of the star from the fits file.
-            plotting: wheather to plot photometry rings
+            ap_size (int): integer. Aperture size, in pixels.
+            ap_small (int): integer. Size of inner ring of annulus, in pixels.
+            ap_large (int): integer. Size of outer ring of annulus, in pixels.
+            
 
     Returns:
             float: time of the observation [MJD], instrument counts from the star
@@ -123,6 +126,28 @@ def star_counts(pixels, data, ap_size, an_small, an_large):
 
 
 def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC, ap_size, an_small, an_large, imsz, fitpath, plotpath, plotting = True, output_file = "Differential_Photometry.txt"):
+    """ Do Differential Photometry
+
+    Takes a collection of fits files, finds the target star in each, and creates a series of photometric values.
+
+    Args:
+            AstrometryNet_key (string): string. API key from Astrometry.net.
+            Target_RA (float): float.  RA of the target star in degrees.
+            Target_DEC (float): float.  DEC of the target star in degrees.        
+            Ref_RA (float): float. RA of the reference star in degrees.
+            Ref_DEC (float): float. DEC of the reference star in degrees.
+            ap_size (int): integer. Aperture size, in pixels.
+            ap_small (int): integer. Size of inner ring of annulus, in pixels.
+            ap_large (int): integer. Size of outer ring of annulus, in pixels.
+            imsz (int): integer. Number of pixels from the middle to the edge of the image, in x and y.
+            fitpath (str): string. Path where the fits files are.
+            plotpath (str): string. Path where you want to save the lightcurve and csv.
+            plotting (bool): boolean. Wheather or not to plot the images with their apertures.
+            output_file (str): string. Name of the output file.
+
+    Returns:
+            (5 x N) array: File_Name, Observation_Time_MJD, Relative_Star_Counts, Target_Star_Counts, Reference_Star_Counts
+    """
     # Store the names of all of the FIT files in the same folder
     files = sorted(glob.glob(fitpath+'*.fit'))
     #files = sorted(glob.glob('*.fit'))
@@ -367,6 +392,16 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC,
     return data
 
 def plot_lightcurve(data):
+    """ Plot Lightcurve
+
+    Using the data from the differential photometry output_file to plot a photometric light curve for the star.
+
+    Args:
+        data (array): 2D numpy array.  output from the differential photometry output_file      
+
+    Returns:
+            .png file: pphotometric lightcurve plot.
+    """
     plt.figure()
     plt.plot(data[:,0], data[:,1])
     plt.xlabel("MJD")
