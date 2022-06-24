@@ -17,35 +17,6 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.stretch import SinhStretch, LinearStretch
 from astropy.visualization import (MinMaxInterval, SqrtStretch, ImageNormalize)
 
-# User inputs
-
-# API Key from Astrometry.net
-AstrometryNet_key = 'edqxeasvvonajjpl'
-
-# RA and DEC of the target star
-Target_RA = 194.0849
-Target_DEC = 21.2909
-
-# RA and DEC of the reference star
-Ref_RA = 194.1270
-Ref_DEC = 21.2909
-
-# Settings for the differential photometry
-ap_size = 10 # aperture size, in pixels, 5
-an_small = 20 # size of inner ring of annulus, in pixels, 10
-an_large = 30 #size of outer ring of annulus, in pixels, 15
-imsz = 150 # number of pixels from the middle to the edge of the image, in x and y
-
-# Wheather or not to plot the graphs 
-plotting = True
-
-# Set the paths
-plotpath = "Plot/" #path where you want to save the lightcurve and csv
-fitpath = "" #path where the fits files are
-
-# Names of the output files
-output_file = "Differential_Photometry.txt"
-
 # Plate Solve the FIT file
 
 def AstrometryNet_Plate_Solve(AstrometryNet_key = None, FIT_File = None, Target_RA = None, Target_DEC = None, Ref_RA = None, Ref_DEC = None):
@@ -119,7 +90,7 @@ def AstrometryNet_Plate_Solve(AstrometryNet_key = None, FIT_File = None, Target_
     except TimeoutError:
         return(999,999)
 
-def star_counts(pixels, data):
+def star_counts(pixels, data, ap_size, an_small, an_large):
 
     """ Star Counts
 
@@ -151,7 +122,7 @@ def star_counts(pixels, data):
 
 #files = sorted(glob.glob(fitpath+'/*.fit'))
 
-def do_dif_photometry(AstrometryNet_key, Target_RA, Target_Dec, Ref_RA, Ref_Dec, ap_size, an_small, an_large, imsz, fitpath, plotpath, plotting = True, output_file = "Differential_Photometry.txt"):
+def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC, ap_size, an_small, an_large, imsz, fitpath, plotpath, plotting = True, output_file = "Differential_Photometry.txt"):
     # Store the names of all of the FIT files in the same folder
     files = sorted(glob.glob('*.fit'))
 
@@ -242,8 +213,8 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_Dec, Ref_RA, Ref_Dec,
                     norm = simple_norm(small_data, 'sqrt', percent=99)
             
                     #Getting the instrument counts for the star and the reference star
-                    star_cts, star_aperture, star_annulus = star_counts(small_pixels, small_data)
-                    refstar_cts, refstar_aperture, refstar_annulus = star_counts(small_refpixels, small_data)
+                    star_cts, star_aperture, star_annulus = star_counts(small_pixels, small_data, ap_size, an_small, an_large)
+                    refstar_cts, refstar_aperture, refstar_annulus = star_counts(small_refpixels, small_data, ap_size, an_small, an_large)
 
                     #Relative counts (star - reference star)
                     rel_star_cts = star_cts - refstar_cts
@@ -389,6 +360,7 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_Dec, Ref_RA, Ref_Dec,
         print("\n")
 
     data = np.genfromtxt('Differential_Photometry.txt', skip_header = 1, usecols = (1,2))
+    return data
 
 def plot_lightcurve(data):
     plt.figure()
