@@ -24,7 +24,7 @@ plotting = True
 
 # Set the paths
 plotpath = "Plot/" #path where you want to save the lightcurve and csv
-fitpath = "" #path where the fits files are
+fitpath = "Small/" #path where the fits files are
 
 # Names of the output files
 output_file = "Differential_Photometry.txt"

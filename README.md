@@ -11,8 +11,8 @@ output the photometric lightcurve of the target star.
 
 
 # Inputs: 
-The user will put all of the necessary inputs into the user inputs 
-block of the Jupyter notebook.  For example, your inputs might look
+The user will put all of the necessary inputs at the top of demo.py.  
+For example, your inputs might look
 like this:
 
 User inputs
@@ -38,13 +38,15 @@ number of pixels from the middle to the edge of the image, in x and y
 imsz = 150 
 
 path where you want to save the lightcurve and csv
-plotpath = "/Users/emilywhittaker/AnacondaProjects/CodeAstro/group_project/codeastro_project/" 
+plotpath = "Plot/" 
 path where the fits files are
-fitpath = "/Users/emilywhittaker/AnacondaProjects/CodeAstro/group_project/codeastro_project/Small" 
+fitpath = "Small/" 
 
+Names of the output files
+output_file = "Differential_Photometry.txt"
 
 # Outputs:
-The package will output a light curve of the variable star, with 
+The package can output a light curve of the variable star, with 
 time listed in minutes since the first observation, and relative flux 
 of the variable star measured in instrument counts.  This will be a 
 .png file.
@@ -53,7 +55,9 @@ It will also output a .csv file containing the name of the fits file, the
 time of observations (MJD), the relative flux of the variable star (counts), 
 the measured flux of the variable star (counts), the measured flux of the 
 reference star (counts), the location of the target star in pixels, and the 
-location of the reference star in pixels.
+location of the reference star in pixels.  Optionally, it can output a small
+image of the star and its reference star with their respective apertures and 
+annuli.  
 
 # Documentation:
 Documentation for all of our functions is listed in the html file under

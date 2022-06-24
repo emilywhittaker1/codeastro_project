@@ -120,11 +120,12 @@ def star_counts(pixels, data, ap_size, an_small, an_large):
     phot_bkgsub = phot_table['aperture_sum'] - total_bkg
     return phot_bkgsub, aperture, annulus_aperture #total counts within the aperture, aperture object, annulus_object
 
-#files = sorted(glob.glob(fitpath+'/*.fit'))
+
 
 def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC, ap_size, an_small, an_large, imsz, fitpath, plotpath, plotting = True, output_file = "Differential_Photometry.txt"):
     # Store the names of all of the FIT files in the same folder
-    files = sorted(glob.glob('*.fit'))
+    files = sorted(glob.glob(fitpath+'*.fit'))
+    #files = sorted(glob.glob('*.fit'))
 
     #print(len(files))
 
@@ -133,10 +134,10 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC,
     mjds_lst = []
 
     # If Differential_Photometry.txt exists
-    if path.isfile('Differential_Photometry.txt') == True:
+    if path.isfile(output_file) == True:
 
         # Load in Differential_Photometry.txt
-        info = np.loadtxt('Differential_Photometry.txt', skiprows = 1, dtype = str)
+        info = np.loadtxt(output_file, skiprows = 1, dtype = str)
 
     # Loop through all FIT files in the same folder
     for i in range(len(files)):
@@ -148,10 +149,10 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC,
         print("\n")
 
         # If Differential_Photometry.txt exists
-        if path.isfile('Differential_Photometry.txt') == True:
+        if path.isfile(output_file) == True:
 
             # Load in Differential_Photometry.txt
-            info = np.loadtxt('Differential_Photometry.txt', skiprows = 1, dtype = str)
+            info = np.loadtxt(output_file, skiprows = 1, dtype = str)
 
             # If info is a 1D array
             if len(info.shape) == 1:
@@ -253,7 +254,7 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC,
                         plt.xlabel("x [pixels]")
                         plt.ylabel("y [pixels]")
 
-                        plt.savefig(fname = plotpath + files[i] + ".png", dpi = 200)
+                        plt.savefig(fname = plotpath +"image_"+str(i)+"_.png", dpi = 200)
 
                         # Close the plot to avoid memory overflow
                         plt.close()
@@ -309,8 +310,8 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC,
                 norm = simple_norm(small_data, 'sqrt', percent=99)
             
                 #Getting the instrument counts for the star and the reference star
-                star_cts, star_aperture, star_annulus = star_counts(small_pixels, small_data)
-                refstar_cts, refstar_aperture, refstar_annulus = star_counts(small_refpixels, small_data)
+                star_cts, star_aperture, star_annulus = star_counts(small_pixels, small_data, ap_size, an_small, an_large)
+                refstar_cts, refstar_aperture, refstar_annulus = star_counts(small_refpixels, small_data, ap_size, an_small, an_large)
 
                 #Relative counts (star - reference star)
                 rel_star_cts = star_cts - refstar_cts
@@ -345,7 +346,10 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC,
                     plt.xlabel("x [pixels]")
                     plt.ylabel("y [pixels]")
 
-                    plt.savefig(fname = plotpath + files[i] + ".png", dpi = 200)
+                    print(plotpath)
+                    print("\n")
+                    print(files[i])
+                    plt.savefig(fname = plotpath +"image_"+str(i)+"_.png", dpi = 200)
 
                     plt.close()
 
@@ -359,7 +363,7 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC,
         # Print a new line
         print("\n")
 
-    data = np.genfromtxt('Differential_Photometry.txt', skip_header = 1, usecols = (1,2))
+    data = np.genfromtxt(output_file, skip_header = 1, usecols = (1,2))
     return data
 
 def plot_lightcurve(data):
