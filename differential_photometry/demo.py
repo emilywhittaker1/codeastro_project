@@ -1,4 +1,4 @@
-from codeastro_project.differential_photometry import  AstrometryNet_Plate_Solve, star_counts, do_dif_photometry, plot_lightcurve
+from differential_photometry import  AstrometryNet_Plate_Solve, star_counts, do_dif_photometry, plot_lightcurve
 
 # User inputs
 
