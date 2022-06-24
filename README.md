@@ -2,7 +2,6 @@
 
 Creates a photometric lightcurve of a variable star.
 
-
 # Overview:
 This package is designed to input a collection of fits files containing 
 reduced images containing a target variable star and the coordinates of the 

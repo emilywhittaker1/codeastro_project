@@ -1,1 +1,0 @@
-File_Name, Observation_Time_MJD, Relative_Star_Counts, Target_Star_Counts, Reference_Star_Counts

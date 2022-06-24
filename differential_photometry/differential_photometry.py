@@ -371,9 +371,6 @@ def do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC,
                     plt.xlabel("x [pixels]")
                     plt.ylabel("y [pixels]")
 
-                    print(plotpath)
-                    print("\n")
-                    print(files[i])
                     plt.savefig(fname = plotpath +"image_"+str(i)+"_.png", dpi = 200)
 
                     plt.close()
