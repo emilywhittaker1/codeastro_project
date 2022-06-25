@@ -6,8 +6,10 @@ Creates a photometric lightcurve of a variable star.
 This package is designed to input a collection of fits files containing 
 reduced images containing a target variable star and the coordinates of the 
 target star and a non-varying reference star at different points in time, and
-output the photometric lightcurve of the target star.  
+output the photometric lightcurve of the target star.
 
+The package is used by downloading the Github repository and running demo.py, 
+which can be modified to suit your needs.
 
 # Inputs: 
 The user will put all of the necessary inputs at the top of demo.py.  

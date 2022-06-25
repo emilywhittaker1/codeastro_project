@@ -29,6 +29,12 @@ fitpath = "Small/" #path where the fits files are
 # Name of the output file
 output_file = "Differential_Photometry.txt"
 
+#Create an empty Plot folder if not already there
+plotdir = os.path.join(os.path.dirname(__file__), "Plot")
+
+if os.path.exists(plotdir):
+  os.mkdir(plotdir)
+
 data = do_dif_photometry(AstrometryNet_key, Target_RA, Target_DEC, Ref_RA, Ref_DEC, ap_size, an_small, an_large, imsz, fitpath, plotpath, plotting = True, output_file = "Differential_Photometry.txt")
 
 plot_lightcurve(data)
